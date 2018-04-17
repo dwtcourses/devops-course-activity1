@@ -1,1 +1,2 @@
 # devops-course-activity1
+# Please open the documentDevOps-Activity1-Part1.pdf to begin the activity
