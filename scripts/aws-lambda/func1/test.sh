@@ -1,5 +1,5 @@
 OUTFILE=test.txt
-FUNCTION_NAME=
+FUNCTION_NAME=myfunc1
 if [ -z $FUNCTION_NAME ]; then
 	echo "ERROR: Required variables have not been set!"
 	echo "Please enter a vlue for FUNCTION_NAME, then try again!"

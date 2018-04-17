@@ -9,27 +9,28 @@
 ## source the variables.sh file, set environment variables as declared within.
 source ./variables.sh
 echo "BEGIN: Environment variables:"
+echo "FUNCTION_NAME=$FUNCTION_NAME"
 echo "FIRST_NAME=$FIRST_NAME"
 echo "LAST_NAME=$LAST_NAME"
 
-if [[ -z $FIRST_NAME || -z $LAST_NAME ]]; then
+if [ -z $FIRST_NAME ] || [ -z $LAST_NAME ] || [ -z $FUNCTION_NAME ]; then
 	echo "ERROR: Required variables have not been set!"
-	echo "Please edit variable.sh and enter a FIRST_NAME, and LAST_NAME, then try again!"
+	echo "Please edit variable.sh and enter a FUNCTION_NAME, FIRST_NAME, and LAST_NAME, then try again!"
+	echo "Exiting.."
 	exit 1
 fi
 echo "END: Environment variables:"
 
-
 ## Setup
 
 	nodeVersion=nodejs6.10
-    lambda_function_name=lambda-echo
+    lambda_function_name=$FUNCTION_NAME
     lambda_description="Echo Static String Responder"
     lambda_handler=lambda-echo.handler
     lambda_memory=128
     lambda_timeout=2
 
-    lambda_function_file=$lambda_function_name.js
+    lambda_function_file=./lambda-echo.js
     lambda_assume_role_policy_file=$lambda_function_name-assume-role-policy.json
 
 ## Create ZIP file
@@ -41,7 +42,7 @@ echo "END: Environment variables:"
 ## Create Role and attach policies
 
 	
-	role_name="$lambda_function_name-role"
+	role_name="lambda-echo-role"
 	result=$(aws iam get-role --role-name ${role_name} --output text | grep -i ${role_name})
 	echo $result
 	if [ $? == 0 ]; then
