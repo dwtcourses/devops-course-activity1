@@ -1,4 +1,4 @@
 #!/bin/bash -ex
-FUNCTION_NAME=
-FIRST_NAME=
-LAST_NAME=
+FUNCTION_NAME=myfunc5
+FIRST_NAME=steve
+LAST_NAME=robinson

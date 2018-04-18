@@ -1,4 +1,5 @@
-lambda_function_name=lambda-echo
+source ./variables.sh
+lambda_function_name=$FUNCTION_NAME
 echo "Check style 1"
 result=$( aws lambda get-function --function-name $lambda_function_name --query Configuration.[FunctionName])
 echo $result

@@ -1,4 +1,5 @@
 #!/bin/bash -ex
+# -ex (debug variables)
 #
 # Install AWS Lambda function: lambda-echo 
 #
@@ -21,40 +22,54 @@ if [ -z $FIRST_NAME ] || [ -z $LAST_NAME ] || [ -z $FUNCTION_NAME ]; then
 fi
 echo "END: Environment variables:"
 
+err_report() {
+    echo "Error on line $1"
+}
+
+trap 'err_report $LINENO' ERR
+
 ## Setup
 
 	nodeVersion=nodejs6.10
     lambda_function_name=$FUNCTION_NAME
     lambda_description="Echo Static String Responder"
-    lambda_handler=lambda-echo.handler
+    lambda_handler=$FUNCTION_NAME.handler
     lambda_memory=128
     lambda_timeout=2
-    lambda_function_file=./lambda-files/function.js
-    lambda_assume_role_policy_file=./lambda-files/assume-role-policy.json
+    lambda_function_template=./lambda-code.js
+	lambda_function_file=./$FUNCTION_NAME.js
+	lambda_policy_template=./assume-role-policy.json
+	lambda_assume_role_policy_file=./$FUNCTION_NAME-assume-role-policy.json
+	
+	
+	## We copy the lambda-code.js file that has the node code, and re-name it to the dynamic function name
+	## From testing, it looks like, Lamda like the <lambda_file>.js to be the same name as the actual function name.
+	cp $lambda_function_template ./$lambda_function_file
+	cp $lambda_policy_template ./$lambda_assume_role_policy_file
+	role_name="${FUNCTION_NAME}-role"
+
 
 ## Create ZIP file
+	echo "Creating temp directory"
+	cmd="mktemp -d /tmp/$lambda_function_name.XXXXXX"
+	echo "EXECUTING cmd="$cmd
+	lambda_zip_dir=$($cmd)
+	echo "lambda_zip_dir="$lambda_zip_dir
+	ls $lambda_zip_dir
 
-    lambda_zip_dir=$(mktemp -d /tmp/$lambda_function_name.XXXXXX)
-    lambda_zip_file=$lambda_zip_dir/$lambda_function_name.zip
-	#-q (quiet), -r (recursive)
-    #zip -q -r $lambda_zip_file $lambda_function_file
-	zip -r $lambda_zip_file lamda-files *
+	echo "Creating a zip file"
+	lambda_zip_file=$lambda_zip_dir/$lambda_function_name.zip
+	echo "lambda_zip_file="$lambda_zip_file
+  	#-q (quiet), -r (recursive), -j (no root folder)
+	zip -r $lambda_zip_file $lambda_function_file
+	ls $lambda_zip_file
 
 ## Create Role and attach policies
-
+	IAM_ROLE=$(aws iam get-role --role-name ${role_name} --output text | grep -i ${role_name}) || true
+	echo $IAM_ROLE
+	if [ -z "$IAM_ROLE" ]; then
 	
-	role_name="lambda-echo-role"
-	result=$(aws iam get-role --role-name ${role_name} --output text | grep -i ${role_name})
-	echo $result
-	if [ $? == 0 ]; then
-		echo "[${role_name}], already exists, getting arn.."
-		#We need to get the arn
-		lambda_role_arn=$(aws iam get-role --role-name ${role_name} --output text --query Role.[Arn])
-		echo "$lambda_role_arn=[$lambda_role_arn=]"
-		
-		
-	else
-		echo "Creating new IAM Role:[${role_name}]"
+	echo "Creating new IAM Role:[${role_name}]"
 		
 		 lambda_role_arn=$(aws iam create-role \
      --role-name ${role_name} \
@@ -62,6 +77,14 @@ echo "END: Environment variables:"
      --output text \
      --query 'Role.Arn'
     )
+	
+		
+	else
+		echo "[${role_name}], already exists, getting arn.."
+		#We need to get the arn
+		lambda_role_arn=$(aws iam get-role --role-name ${role_name} --output text --query Role.[Arn])
+		echo "$lambda_role_arn=[$lambda_role_arn=]"
+		
 		
 	fi
 
@@ -74,12 +97,11 @@ echo "END: Environment variables:"
 	echo $result
 	if [ "$result" != "null" ]; then
 		echo "** In Update section **"
-		echo "Lambda Function:[${lambda_function_name}], already exists, updating.."
-	    aws lambda update-function-code \
-		--function-name "$lambda_function_name" \
-		--zip-file "fileb://$lambda_zip_file"
+		echo "Lambda Function:[${lambda_function_name}], already exists, deleting.."
+		aws lambda delete-function --function-name ${lambda_function_name}
 		
-	else
+	fi
+	
 		echo "** In Create Section **"
 		echo "Lambda Function:[${lambda_function_name}], does not exist, creating.."
 		aws lambda create-function \
@@ -92,9 +114,6 @@ echo "END: Environment variables:"
 		--handler "$lambda_handler" \
 		--description "$lambda_description" \
 		--zip-file "fileb://$lambda_zip_file"
-	fi
-
-    
 
 ## Cleanup
 
