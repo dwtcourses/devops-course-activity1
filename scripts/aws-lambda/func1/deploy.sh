@@ -30,8 +30,13 @@ echo "END: Environment variables:"
     lambda_memory=128
     lambda_timeout=2
 
+<<<<<<< HEAD
     lambda_function_file=./lambda-files/function.js
     lambda_assume_role_policy_file=./lambda-files/assume-role-policy.json
+=======
+    lambda_function_file=./lambda-echo.js
+    lambda_assume_role_policy_file=$lambda_function_name-assume-role-policy.json
+>>>>>>> 0b39dc81c8b2327f23daf4fd42e59eda3a88375a
 
 ## Create ZIP file
 
