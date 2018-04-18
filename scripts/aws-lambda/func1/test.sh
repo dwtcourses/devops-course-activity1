@@ -12,8 +12,6 @@
 # 18-April-2016  0.1  scr  Updated the first version to new format
 #
 OUTFILE=test.txt
-<<<<<<< HEAD
-
 ##########################################################################
 #
 # showUsage() - display a simple usage message
@@ -38,8 +36,6 @@ validateArgs()
        
         n)  export FUNCTION_NAME="${OPTARG}"
 	        ;;
-            
-
 		\?) echo "No option specified"
 			;;
  
@@ -71,9 +67,7 @@ THIS_SCRIPT=$(basename $THIS_SCRIPT .sh)
 validateArgs "$@"
 
 echo "FUNCTION_NAME"=$FUNCTION_NAME
-=======
 FUNCTION_NAME=myfunc1
->>>>>>> 0b39dc81c8b2327f23daf4fd42e59eda3a88375a
 if [ -z $FUNCTION_NAME ]; then
 	echo "ERROR: Required variables have not been set!"
 	echo "Please enter a value for FUNCTION_NAME, then try again!"
