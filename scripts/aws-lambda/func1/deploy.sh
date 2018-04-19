@@ -22,11 +22,12 @@ if [ -z $FIRST_NAME ] || [ -z $LAST_NAME ] || [ -z $FUNCTION_NAME ]; then
 fi
 echo "END: Environment variables:"
 
-err_report() {
-    echo "Error on line $1"
-}
+#err_report() {
+#    echo "Error on line $1"
+#}
 
-trap 'err_report $LINENO' ERR
+#trap 'err_report $LINENO' ERR
+
 
 ## Setup
 
@@ -93,13 +94,17 @@ trap 'err_report $LINENO' ERR
 
 ## Create/Update the function and upload the ZIP file
 
-	result=$( aws lambda list-functions --output json --query Functions[0].FunctionName )
-	echo $result
-	if [ "$result" != "null" ]; then
-		echo "** In Update section **"
+ResourceNotFoundException() {
+	echo "ERROR TYPE: ResourceNotFoundException"
+	echo "ERROR REASON: Lambda function:["${lambda_function_name}"], does not exist"
+	echo "Continuing..."
+}
+	EXISTS=$( aws lambda list-functions --output json --query Functions[0].FunctionName )
+	echo $EXISTS
+	if [ "$EXISTS" != "null" ]; then
+		echo "** In Delete Section **"
 		echo "Lambda Function:[${lambda_function_name}], already exists, deleting.."
-		aws lambda delete-function --function-name ${lambda_function_name}
-		
+		$(aws lambda delete-function --function-name ${lambda_function_name}) || ResourceNotFoundException
 	fi
 	
 		echo "** In Create Section **"
