@@ -1,10 +1,18 @@
 #!/bin/bash -ex
-# -ex (debug variables)
+###########################################################################
 #
-# Install AWS Lambda function: lambda-echo 
+# Script        : deploy.sh
+# Purpose       : Deploy a lambda function.
+# Authors       : Steve Robinson - http://www.blueboxblue.com steve@blueboxblue.com
+# Created       : April 2018 for DevOps course
+# 
+# History
+# date           ver  who  what 
+# ----           ---  ---  ----
+# 14-April-2018  0.1  scr  First Version
+# 19-April-2018  0.2  scr  Updated checks, annd functions for trapping awscli errors
 #
-# created 14-April-2018, steve@blueboxblue.com
-
+VERSION=0.2
 ## AWS_ACCESS_KEY_ID, and AWS SECRET_ACCESS_KEY are configured using aws configure
 
 ## source the variables.sh file, set environment variables as declared within.
