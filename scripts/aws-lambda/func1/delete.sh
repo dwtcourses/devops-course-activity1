@@ -10,6 +10,7 @@
 # date           ver  who  what 
 # ----           ---  ---  ----
 # 19-April-2018  0.1  scr  Updated the first version to new format
+# 04-May-2018    0.2  scr  Added correct query syntax to return matched function name or empty if not found.
 #
 
 ##########################################################################
@@ -38,7 +39,7 @@ showHelp() {
 validateArgs() 
 { 
     
-    while getopts ":h:n:p:"  opt; do
+    while getopts ":hn:p:"  opt; do
         echo "\$opt=$opt$, \$OPTIND=$OPTIND, \$OPTARG=$OPTARG"
         case $opt in
        
@@ -81,6 +82,14 @@ THIS_SCRIPT=${0##*/}
 THIS_SCRIPT=$(basename $THIS_SCRIPT .sh)
 validateArgs "$@"
 
+
+if [ $# -eq 0 ]
+	then
+		echo "ERROR: No option/switches supplied to function!"
+		showHelp
+		exit 1
+	fi
+
 echo "FUNCTION_NAME"=$FUNCTION_NAME
 if [ -z $FUNCTION_NAME ]; then
 	echo "ERROR: Required variables have not been set!"
@@ -95,16 +104,21 @@ ResourceNotFoundException() {
 	echo "ERROR REASON: Lambda function:["${FUNCTION_NAME}"], does not exist"
 }
 
-EXISTS=$( aws lambda list-functions --output json --query Functions[0].FunctionName )
-echo $EXISTS
-if [ "$EXISTS" != "null" ]; then
+
+CMD=" aws lambda list-functions --query ""Functions[?FunctionName=='${FUNCTION_NAME}'].FunctionName"" --output text"
+echo "CMD="$CMD
+FUNCTION_EXISTS=$($CMD)
+echo "FUNCTION_EXISTS="$FUNCTION_EXISTS
+
+if [ -z "${FUNCTION_EXISTS}" ]; then
+	echo "Nothing to do, Lambda function:"[$FUNCTION_NAME]" does not exist in AWS."
+	exit 1
+else
 	echo "** In Delete Section **"
 	echo "Lambda Function:[${FUNCTION_NAME}], exists, deleting.."
 	$(aws lambda delete-function --function-name ${FUNCTION_NAME}) || ResourceNotFoundException
-else
-	echo "Nothing to do, Lambda function:"[$FUNCTION_NAME]" does not exist in AWS."
-fi 
 
+fi 
 
 
 if [ ! -z $PURGE_FILE ]; then
