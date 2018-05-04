@@ -9,17 +9,25 @@
 # History
 # date           ver  who  what 
 # ----           ---  ---  ----
-# 18-April-2016  0.1  scr  Updated the first version to new format
+# 18-April-2018  0.1  scr  Updated the first version to new format
+# 04-May-2018    0.2  scr  Updated to use function name as the output file.
 #
-OUTFILE=test.txt
+VERSION=0.2
 ##########################################################################
 #
-# showUsage() - display a simple usage message
+# showHelp() - display full help
 #
 ##########################################################################
-showUsage() {
+showHelp() {
+
     echo "Usage: ${0##*/} -n <Enter function name e.g myfunc1>"
+    echo 
+    echo "Invoke Lamda Function"
+    echo "Options:"
+    echo "  -n           Lambda function by name"
+	echo "  -h           This help message"
     exit 1
+    
 }
  
 ##########################################################################
@@ -30,17 +38,18 @@ showUsage() {
 validateArgs() 
 { 
     
-    while getopts ":n:"  opt; do
+    while getopts ":h:n:"  opt; do
         echo "\$opt=$opt$, \$OPTIND=$OPTIND, \$OPTARG=$OPTARG"
         case $opt in
        
         n)  export FUNCTION_NAME="${OPTARG}"
 	        ;;
+			
 		\?) echo "No option specified"
 			;;
  
         *)  echo "Invalid option -${OPTARG}">&2
-            showUsage
+            showHelp
 			exit 0
             ;;
  
@@ -51,7 +60,7 @@ validateArgs()
  
     if [ $# -ne 0 ]
     then
-        showUsage
+        showHelp
 		exit 1
     fi
  
@@ -66,6 +75,13 @@ THIS_SCRIPT=${0##*/}
 THIS_SCRIPT=$(basename $THIS_SCRIPT .sh)
 validateArgs "$@"
 
+if [ $# -eq 0 ]
+	then
+		echo "ERROR: No option/switches supplied to function!"
+		showHelp
+		exit 1
+	fi
+
 echo "FUNCTION_NAME"=$FUNCTION_NAME
 if [ -z $FUNCTION_NAME ]; then
 	echo "ERROR: Required variables have not been set!"
@@ -73,7 +89,12 @@ if [ -z $FUNCTION_NAME ]; then
 	exit 1
 fi
 echo "END: Environment variables:"
+OUTFILE=$FUNCTION_NAME.txt
+echo $OUTFILE
+
+echo "Purging previous test result..."
 rm -Rf $OUTFILE
+echo "Invoking Lambda function [$FUNCTION_NAME]..."
 aws lambda invoke \
     --function-name $FUNCTION_NAME \
 	$OUTFILE
